@@ -8,7 +8,14 @@ repo_type = "dataset"
 
 # Initialize API client
 token = os.getenv("HF_TOKEN")
+
+if token is None or token == '':
+    print("HF_TOKEN is not set!")
+else:
+    print(f"HF_TOKEN is set. Using token for authentication.")
+    
 api = HfApi(token)
+
 print(f"HF_TOKEN :  '{token}' exists. Using it.")
 
 # Step 1: Check if the space exists
