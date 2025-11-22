@@ -7,9 +7,9 @@ repo_id = "karanjkarnishi/Tourism-Package-Prediction"
 repo_type = "dataset"
 
 # Initialize API client
-api = HfApi(token=os.getenv("HF_TOKEN"))
-
-print(f"HF_TOKEN :  '{HF_TOKEN}' exists. Using it.")
+token = os.getenv("HF_TOKEN")
+api = HfApi(token)
+print(f"HF_TOKEN :  '{token}' exists. Using it.")
 
 # Step 1: Check if the space exists
 try:
