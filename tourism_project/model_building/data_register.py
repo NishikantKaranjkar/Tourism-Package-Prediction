@@ -16,8 +16,6 @@ else:
     
 api = HfApi(token)
 
-print(f"HF_TOKEN :  '{token}' exists. Using it.")
-
 # Step 1: Check if the space exists
 try:
     api.repo_info(repo_id=repo_id, repo_type=repo_type)
