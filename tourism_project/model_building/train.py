@@ -6,6 +6,7 @@ from sklearn.pipeline import make_pipeline
 # for model training, tuning, and evaluation
 import xgboost as xgb
 from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import RandomizedSearchCV
 from sklearn.metrics import accuracy_score, classification_report, recall_score
 from sklearn.pipeline import make_pipeline
 from sklearn.pipeline import Pipeline
