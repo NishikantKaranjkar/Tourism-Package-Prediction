@@ -37,9 +37,9 @@ NumberOfTrips = st.number_input("Number of Trips (annually)", min_value=0.0, val
 Passport = st.selectbox("Passport", ["Yes", "No"])
 PitchSatisfactionScore = st.number_input("Pitch Satisfaction Score", min_value=1, max_value=5, value=3)
 OwnCar = st.selectbox("Own Car", ["Yes", "No"])
-NumberOfChildrenVisiting = st.number_input("Number of Children Visiting", min_value=0.0, value=0.0)
+NumberOfChildrenVisiting = st.number_input("Number of Children Visiting", min_value=0, value=0)
 Designation = st.selectbox("Designation", ["Manager", "Senior Manager", "Executive", "AVP", "VP", "Director"])
-MonthlyIncome = st.number_input("Monthly Income", min_value=0.0, value=20000.0)
+MonthlyIncome = st.number_input("Monthly Income", min_value=0.0, value=10000.0)
 ProductPitched = st.selectbox("Product Pitched", ["Basic", "Deluxe", "Standard", "Super Deluxe", "King"])
 NumberOfFollowups = st.number_input("Number of Followups", min_value=0, value=0)
 
