@@ -12,8 +12,11 @@ from huggingface_hub import login, HfApi
 
 # Define constants for the dataset and output paths
 api = HfApi(token=os.getenv("HF_TOKEN"))
-DATASET_PATH = "hf://datasets/karanjkarnishi/Tourism-Package-Prediction/tourism.csv"
+
+DATASET_PATH = "hf://datasets/karanjkarnishi/Tourism-Package-Prediction-Dataset/tourism.csv"
+
 df = pd.read_csv(DATASET_PATH)
+
 print("Dataset loaded successfully.")
 
 # List of numerical features 
@@ -70,7 +73,7 @@ ytest.to_csv("ytest.csv",index=False)
 files = ["Xtrain.csv", "Xtest.csv", "ytrain.csv", "ytest.csv"]
 
 # Define Hugging Face repo id and repo type
-repo_id = "karanjkarnishi/Tourism-Package-Prediction"
+repo_id = "karanjkarnishi/Tourism-Package-Prediction-Dataset"
 repo_type = "dataset"
 
 # Upload train and test csv files to hugging face
