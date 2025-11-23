@@ -11,9 +11,9 @@ token = os.getenv("HF_TOKEN")
 
 if token is None or token == '':
     print("HF_TOKEN is not set!")
-else:
-    print(f"HF_TOKEN  is set. Using token for authentication.")
     exit(1)
+else:
+    print(f"HF_TOKEN  is set. Using token for authentication.")    
     
 api = HfApi(token=token)
 
