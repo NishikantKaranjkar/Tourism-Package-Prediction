@@ -69,8 +69,17 @@ input_data = pd.DataFrame([{
 classification_threshold = 0.47
 
 # Predict button
+# Predict button
 if st.button("Predict"):
     prediction_proba = model.predict_proba(input_data)[:, 1]
     prediction = (prediction_proba >= classification_threshold).astype(int)
-    result = "purchase the Wellness Tourism Package" if prediction == 1 else "not purchase the Wellness Tourism Package"
-    st.write(f"Based on the information provided, the customer is likely to {result}.")
+
+    result_text = (
+        "purchase the Wellness Tourism Package"
+        if prediction == 1
+        else "not purchase the Wellness Tourism Package"
+    )
+
+    st.write(
+        f"Based on the details provided, the customer is likely to **{result_text}**."
+    )
