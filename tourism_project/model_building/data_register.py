@@ -12,9 +12,10 @@ token = os.getenv("HF_TOKEN")
 if token is None or token == '':
     print("HF_TOKEN is not set!")
 else:
-    print(f"HF_TOKEN '{token}' is set. Using token for authentication.")
+    print(f"HF_TOKEN  is set. Using token for authentication.")
+    exit(1)
     
-api = HfApi(token)
+api = HfApi(token=token)
 
 # Step 1: Check if the space exists
 try:
