@@ -18,12 +18,7 @@ import mlflow
 
 # Set MLflow tracking URI to a temporary directory for local tracking within Colab
 mlflow.set_tracking_uri("http://localhost:5000")
-
 mlflow.set_experiment("tourism_project-training-experiment")
-
-token=os.getenv("HF_TOKEN")
-
-api = HfApi(token=token)
 
 Xtrain_path = "hf://datasets/karanjkarnishi/Tourism-Package-Prediction-Dataset/Xtrain.csv"
 Xtest_path = "hf://datasets/karanjkarnishi/Tourism-Package-Prediction-Dataset/Xtest.csv"
@@ -70,84 +65,86 @@ print ('Class Weight : ', class_weight)
 # Define the preprocessing steps
 preprocessor = make_column_transformer(
     (StandardScaler(), numeric_features),
-    (OneHotEncoder(handle_unknown='ignore'), categorical_features)
+    (OneHotEncoder(handle_unknown='ignore', sparse_output=False), categorical_features)
 )
 
 # Define base XGBoost model
-xgb_model = xgb.XGBClassifier(scale_pos_weight=class_weight, random_state=42)
+xgb_model = xgb.XGBClassifier(
+    scale_pos_weight=class_weight,
+    tree_method="hist",
+    eval_metric="logloss",
+    random_state=42
+)
+
+# Pipeline
+model_pipeline = Pipeline([
+    ("preprocessor", preprocessor),
+    ("xgb", xgb_model)
+])
 
 # Define hyperparameter grid
-param_grid = {
-    'xgbclassifier__n_estimators': [50, 75, 100, 125, 150],    # number of tree to build
-    'xgbclassifier__max_depth': [2, 3, 4],    # maximum depth of each tree
-    'xgbclassifier__colsample_bytree': [0.4, 0.5, 0.6],    # percentage of attributes to be considered (randomly) for each tree
-    'xgbclassifier__colsample_bylevel': [0.4, 0.5, 0.6],    # percentage of attributes to be considered (randomly) for each level of a tree
-    'xgbclassifier__learning_rate': [0.01, 0.05, 0.1],    # learning rate
-    'xgbclassifier__reg_lambda': [0.4, 0.5, 0.6],    # L2 regularization factor
+# Hyperparameter Space
+param_dist = {
+    "xgb__n_estimators": [100, 150, 200, 250],
+    "xgb__max_depth": [3, 4, 5],
+    "xgb__learning_rate": [0.01, 0.05, 0.1],
+    "xgb__subsample": [0.7, 0.8, 0.9],
+    "xgb__colsample_bytree": [0.5, 0.7, 1.0],
 }
 
 # Model pipeline
 model_pipeline = make_pipeline(preprocessor, xgb_model)
 
-# Start MLflow run
+# Start MLflow
 with mlflow.start_run():
-    # Hyperparameter tuning
-    grid_search = GridSearchCV(model_pipeline, param_grid, cv=5, n_jobs=-1)
-    grid_search.fit(Xtrain, ytrain)
 
-    # Log all parameter combinations and their mean test scores
-    results = grid_search.cv_results_
-    for i in range(len(results['params'])):
-        param_set = results['params'][i]
-        mean_score = results['mean_test_score'][i]
-        std_score = results['std_test_score'][i]
+    mlflow.log_param("class_weight", class_weight)
 
-        # Log each combination as a separate MLflow run
-        with mlflow.start_run(nested=True):
-            mlflow.log_params(param_set)
-            mlflow.log_metric("mean_test_score", mean_score)
-            mlflow.log_metric("std_test_score", std_score)
+    # Randomized Search (faster than Grid)
+    search = RandomizedSearchCV(
+        model_pipeline,
+        param_distributions=param_dist,
+        n_iter=20,
+        cv=5,
+        scoring="f1",
+        n_jobs=-1,
+        verbose=2
+    )
 
-    # Log best parameters separately in main run
-    mlflow.log_params(grid_search.best_params_)
+    search.fit(Xtrain, ytrain)
 
-    # Store and evaluate the best model
-    best_model = grid_search.best_estimator_
+    # Best model
+    best_model = search.best_estimator_
+    mlflow.log_params(search.best_params_)
 
-    classification_threshold = 0.45
-
-    y_pred_train_proba = best_model.predict_proba(Xtrain)[:, 1]
-    y_pred_train = (y_pred_train_proba >= classification_threshold).astype(int)
-
-    y_pred_test_proba = best_model.predict_proba(Xtest)[:, 1]
-    y_pred_test = (y_pred_test_proba >= classification_threshold).astype(int)
+    # Predictions
+    threshold = 0.45
+    y_pred_train = (best_model.predict_proba(Xtrain)[:, 1] >= threshold).astype(int)
+    y_pred_test  = (best_model.predict_proba(Xtest)[:, 1]  >= threshold).astype(int)
 
     train_report = classification_report(ytrain, y_pred_train, output_dict=True)
-    test_report = classification_report(ytest, y_pred_test, output_dict=True)
+    test_report  = classification_report(ytest,  y_pred_test,  output_dict=True)
 
-    # Log the metrics for the best model
-    mlflow.log_metrics({
-        "train_accuracy": train_report['accuracy'],
-        "train_precision": train_report['1']['precision'],
-        "train_recall": train_report['1']['recall'],
-        "train_f1-score": train_report['1']['f1-score'],
-        "test_accuracy": test_report['accuracy'],
-        "test_precision": test_report['1']['precision'],
-        "test_recall": test_report['1']['recall'],
-        "test_f1-score": test_report['1']['f1-score']
-    })
+    # Log Metrics
+    for prefix, rep in [("train", train_report), ("test", test_report)]:
+        mlflow.log_metric(f"{prefix}_accuracy", rep["accuracy"])
+        mlflow.log_metric(f"{prefix}_precision", rep["1"]["precision"])
+        mlflow.log_metric(f"{prefix}_recall", rep["1"]["recall"])
+        mlflow.log_metric(f"{prefix}_f1", rep["1"]["f1-score"])
 
-    # Save the model locally
-    model_path = "tourism_prediction_model_v1.joblib"
+    # Save model locally
+    model_path = "tourism_prediction_model_v2.joblib"
     joblib.dump(best_model, model_path)
-
-    # Log the model artifact
     mlflow.log_artifact(model_path, artifact_path="model")
+    
     print(f"Model saved as artifact at: {model_path}")
 
     # Upload to Hugging Face
     repo_id = "karanjkarnishi/tourism_package_prediction_model"
     repo_type = "model"
+
+    token=os.getenv("HF_TOKEN")
+    api = HfApi(token=token)
 
     # Step 1: Check if the space exists, otherwise create it
     try:
@@ -160,8 +157,10 @@ with mlflow.start_run():
 
     # Step 2: Upload the model artifact to the space
     api.upload_file(
-        path_or_fileobj="tourism_prediction_model_v1.joblib",
-        path_in_repo="tourism_prediction_model_v1.joblib",
+        path_or_fileobj=model_path,
+        path_in_repo=model_path,
         repo_id=repo_id,
-        repo_type=repo_type,
+        repo_type="model"
     )
+    
+    print("Model uploaded to HF successfully.")
