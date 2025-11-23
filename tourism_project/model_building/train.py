@@ -18,14 +18,17 @@ import mlflow
 
 # Set MLflow tracking URI to a temporary directory for local tracking within Colab
 mlflow.set_tracking_uri("http://localhost:5000")
+
 mlflow.set_experiment("tourism_project-training-experiment")
 
-api = HfApi(token=os.getenv("HF_TOKEN"))
+token=os.getenv("HF_TOKEN")
 
-Xtrain_path = "hf://datasets/karanjkarnishi/tourism_dataset/Xtrain.csv"
-Xtest_path = "hf://datasets/karanjkarnishi/tourism_dataset/Xtest.csv"
-ytrain_path = "hf://datasets/karanjkarnishi/tourism_dataset/ytrain.csv"
-ytest_path = "hf://datasets/karanjkarnishi/tourism_dataset/ytest.csv"
+api = HfApi(token=token)
+
+Xtrain_path = "hf://datasets/karanjkarnishi/Tourism-Package-Prediction-Dataset/Xtrain.csv"
+Xtest_path = "hf://datasets/karanjkarnishi/Tourism-Package-Prediction-Dataset/Xtest.csv"
+ytrain_path = "hf://datasets/karanjkarnishi/Tourism-Package-Prediction-Dataset/ytrain.csv"
+ytest_path = "hf://datasets/karanjkarnishi/Tourism-Package-Prediction-Dataset/ytest.csv"
 
 Xtrain = pd.read_csv(Xtrain_path)
 Xtest = pd.read_csv(Xtest_path)
@@ -62,7 +65,7 @@ categorical_features = [
 
 # Set the clas weight to handle class imbalance
 class_weight = ytrain.value_counts()[0] / ytrain.value_counts()[1]
-class_weight
+print ('Class Weight : ', class_weight)
 
 # Define the preprocessing steps
 preprocessor = make_column_transformer(
@@ -143,7 +146,7 @@ with mlflow.start_run():
     print(f"Model saved as artifact at: {model_path}")
 
     # Upload to Hugging Face
-    repo_id = "karanjkarnishi/tourism_model"
+    repo_id = "karanjkarnishi/tourism_package_prediction_model"
     repo_type = "model"
 
     # Step 1: Check if the space exists, otherwise create it
