@@ -7,6 +7,8 @@ from sklearn.pipeline import make_pipeline
 import xgboost as xgb
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import accuracy_score, classification_report, recall_score
+from sklearn.pipeline import make_pipeline
+from sklearn.pipeline import Pipeline
 # for model serialization
 import joblib
 # for creating a folder
@@ -91,9 +93,6 @@ param_dist = {
     "xgb__subsample": [0.7, 0.8, 0.9],
     "xgb__colsample_bytree": [0.5, 0.7, 1.0],
 }
-
-# Model pipeline
-model_pipeline = make_pipeline(preprocessor, xgb_model)
 
 # Start MLflow
 with mlflow.start_run():
