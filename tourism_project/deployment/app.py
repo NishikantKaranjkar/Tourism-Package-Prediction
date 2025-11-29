@@ -32,7 +32,7 @@ Occupation = st.selectbox("Occupation", ["Salaried", "Small Business", "Large Bu
 Designation = st.selectbox("Designation", ["Manager", "Senior Manager", "Executive", "AVP", "VP", "Director"])
 MonthlyIncome = st.number_input("Monthly Income", min_value=0.0, value=10000.0)
 OwnCar = st.selectbox("Own Car", ["Yes", "No"])
-NumberOfTrips = st.number_input("Number of Trips (annually)", min_value=0.0, value=1.0)
+NumberOfTrips = st.number_input("Number of Trips (annually)", min_value=0, value=0)
 Passport = st.selectbox("Passport", ["Yes", "No"])
 CityTier = st.selectbox("City Tier", [1, 2, 3])
 DurationOfPitch = st.number_input("Duration of Pitch (in minutes)", min_value=0.0, value=10.0)
